@@ -477,6 +477,7 @@ error() {
     exit "$errorcode"
   fi
 }
+```
 
 ## Parameter Shifts
 
