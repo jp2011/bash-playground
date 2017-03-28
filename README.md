@@ -218,7 +218,11 @@ fd2 -> null
 
 ## Pipes
 
-* ```set -o pipefail```  makes sure that if any of the commands in the pipeline fail, that error code will be returned.
+* ```set -euxo pipefail```  makes sure that if any of the commands in the pipeline fail, that error code will be returned.
+    * `e`: This option will cause a script to exit immediatelly when one of its command fails. By default, the script just ignores failing commands and continues with executing the next line. If you do not want a failing command to trigger an exit, you can use `command || true`, or you can disable it temporarily by `set +e` (the plus sign works on all flags, and you can find the current flag statuses by running echo `$-`). 
+    * `o`: The shell by default looks only at the exit code of the last command of the pipeline. This option ensures that the exit code of a pipeline will be the same as the exit code of its right-most command to exit with a non-zero status (if any), or zero. 
+    * `u`: This option causes shell to exit whenever an undefined variable is used.
+    * `x`: This option causes bash to print every command before executing it. This is a great help while debugging the script, but beware, it is also very verbose. 
 
 
 ## Control Directives
