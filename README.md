@@ -103,6 +103,8 @@ associated with it.
 * There is limitaion of arguments to the program. `xargs(1) --show-limits`
 shows the limits
 
+![Inheritance of Processes](https://github.com/cinsk/bash-playground/blob/master/figures/Inheritance%20of%20Process%20Information.png?raw=true)
+
 In Linux, with proc file system, you can read
 * /proc/{PID}/cwd – current directory of the process
 * /proc/{PID}/environ – environment variables for the process. Use 
@@ -182,6 +184,8 @@ Because `awk` does not know option `-F: -f`. This however works fine on Mac's sh
 
 
 ## Redirection
+See this [link](http://www.tldp.org/LDP/abs/html/io-redirection.html) for more information. 
+
 ```
 >         ls > xxx
 <         cat < hello.java
@@ -190,7 +194,6 @@ Because `awk` does not know option `-F: -f`. This however works fine on Mac's sh
 2>&1  redirecting std error to std output
 &> /dev/null  // redirect both STDOUT and STDERR to some file
 ```
-
 
 | I/O    | File Descriptor         |
 |--------|-------------------------|
@@ -215,6 +218,82 @@ xxx 1>&2 2>/dev/null
 ```
 fd1 -> old fd2
 fd2 -> null
+
+### Disable input using redirection
+`./script.sh > /dev/null` removes the output from the shell completely. Then take an example of this script:
+```
+...
+exec > /dev/null # swallow all the output
+exec < /dev/null # any attempt to read from standard input will fail
+```
+
+## Special Files
+
+
+```
+/dev/fd/N              # N is integer starting from 0
+/dev/stdin             # identical to /dev/fd/0
+/dev/stdout            # identical to /dev/fd/1
+/dev/stderr            # identical to /dev/fd/2
+/dev/tcp/HOST/PORT     # bash attempt to open the corresponding TCP socket
+/dev/udp/HOST/PORT     # bash attempt to open the corresponding UDP socket
+/dev/null
+/dev/zero
+/dev/random
+/dev/urandom
+/dev/ttyN              # N is an integer
+```
+
+
+### Quiz
+Assuming that in your system, has additional hard disk which is assigned to /dev/disk2, which is not mounted yet. What is the meaning of `cat /dev/zero > /dev/disk2`?
+
+This will wipe out all the bits in the hard drive.
+
+Assuming that in your system, has two additional hard disks, which have exactly same specification. The first one is assigned to /dev/disk2, and the second one is to /dev/disk3. What is the meaning of `cat /dev/disk2 > /dev/disk3`?
+
+This will create a replica of the hard drive.
+
+### Device file
+```
+/dev/disk*                      # Hard disk (MacOS)
+ 
+/dev/hda                        # IDE hard disks
+/dev/hda1
+/dev/hdb
+/dev/hdb1
+ 
+/dev/sda                        # SCSI hard disks
+/dev/sda1
+/dev/sda2
+/dev/sdb
+ 
+/dev/xvd*                       # Xen Virtual Block devices (VM)
+ 
+/dev/pts/0 ... /dev/pts/30      # Pseudo terminal devices
+/dev/tty0                       # Terminal devices
+ 
+   
+ 
+/dev/random                     # Random number generator (slow, more randomness)
+/dev/urandom                    # Random number generator (fast, less randomness)
+ 
+   head -c 4 /dev/random | od -An -t u4 # print a random 32-bit integer.
+```
+
+One can write into another terminal:
+```
+# In terminal #1
+$ tty
+/dev/pts/3
+ 
+# In terminal #2
+$ echo "hello world" > /dev/pts/3   # this will write into terminal 1
+```
+
+
+
+
 
 ## Pipes
 
