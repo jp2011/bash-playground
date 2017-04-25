@@ -139,6 +139,38 @@ In order to solve it, one can use `xargs` in order to split it into sublists and
 find /path -type f -print | xargs rm
 ```
 
+### `xargs` examples
+```
+seq 10 | xargs echo
+seq 10 | xargs -n 1 echo
+seq 10 | xargs -I {} echo 'hello - {}'
+seq 10 | xargs -I {} bash -c 'echo "$$ - {}"'
+seq 10 | xargs -I {} bash -c 'sleep 1; echo "$$ - {}"'
+# check /proc/cpuinfo to get the proper number of parallelism
+seq 10 | xargs -I {} -P 4 bash -c 'sleep 1; echo "$$ - {}"'
+ 
+find . -name '*.java' | xargs grep PATTERN
+find . -name '*.java' | xargs -I {} grep PATTERN {}
+find . -name '*.java' | xargs -P 4 -n 1 -grep PATTERN
+ 
+ 
+find . -path './tst' -prune -o -name '*.java' -print | xargs grep -n config
+find . -path './tst' -prune -o -name '*.java' -print -o -name '*.cfg' -print | xargs grep -n inPath
+ 
+ 
+findstr() {
+  find . -path './tst' -prune -o -name '*.java' -print -o -name '*.cfg' -print | xargs grep "$@"
+}
+ 
+find . ! -path . -maxdepth 2 -name 'Config' | xargs grep log4j | grep '= *1[.0-9]*'
+ 
+find . ! -path . -maxdepth 1 -type d | xargs -I {} bash -c 'cd {}; git status'
+find . ! -path . -maxdepth 1 -type d | xargs -P 4 -I {} bash -c 'cd {}; git fetch
+find . ! -path . -maxdepth 1 -type d | parallel --progress 'cd {}; git fetch'
+ 
+top -b -n 1 -U jp2011 | grep jp2011
+```
+
 
 ## Terminal customisation commands
 * tput is used for terminal customisation
@@ -227,6 +259,65 @@ exec > /dev/null # swallow all the output
 exec < /dev/null # any attempt to read from standard input will fail
 ```
 
+
+### Redirection examples
+See [here](http://www.tldp.org/LDP/abs/html/io-redirection.html) for more examples.
+```
+COMMAND >FILE   # redirect the stdout of COMMAND to FILE
+COMMAND 1>FILE  #
+ 
+  ls > file.lst
+ 
+COMMAND >>FILE  # redirect the stdout of COMMAND, and append to FILE
+COMMAND 1>>FILE #
+ 
+  echo "log line..." >> output.log
+ 
+COMMAND 2>FILE  # redirect the stderr of COMMAND to FILE
+COMMAND 2>>FILE # redirect the stderr of COMMAND, and append to FILE
+ 
+  which python 2>/dev/null
+ 
+COMMAND &>FILE  # redirect the stdout/stderr of COMMAND to FILE (i.e. redirect all output)
+ 
+  javac Hello.java &> output.txt
+ 
+COMMAND M>&N    # redirect the file descriptor M to the file descriptor N.
+                # M defaults to 1, if not provided
+ 
+  COMMAND 1>&2    # redirect the stdout(1) to stderr(2)
+  COMMAND 2>&1    # redirect the stderr(2) to stdout(1)
+ 
+    echo "error: file not found" 1>&2
+    gcc hello.c 2>&1 | less
+ 
+COMMAND <FILE   # redirect the stdin of COMMAND from FILE (i.e. accepting input from FILE as stdin)
+COMMAND 0<FILE  #
+ 
+    cat <input.txt
+ 
+COMMAND <&N     # redirect the file descriptor N to stdin (i.e. Link stdin with the file descriptor)
+COMMAND 0<&N    #
+ 
+ 
+exec J<>FILE # open FILE for read/write, assign the file desciptor J.
+ 
+exec J>&-    # close output file descriptor J
+exec J<&-    # close input file descriptor J
+ 
+    exec 0<&-   # close stdin
+    exec 1>&-   # close stdout
+    exec 2>&-   # close stderr
+ 
+        exec 3<> /dev/tcp/google.com/80
+ 
+        echo -e "GET / HTTP/1.0\r\n\r\n" >&3
+        while read line <&3; do
+            echo "$line"
+        done
+        exec 3>&-
+```
+
 ## Special Files
 
 
@@ -243,6 +334,7 @@ exec < /dev/null # any attempt to read from standard input will fail
 /dev/urandom
 /dev/ttyN              # N is an integer
 ```
+
 
 
 ### Quiz
@@ -570,8 +662,256 @@ error() {
 | after | error | hi    | there | <BLANK> |
 
 
-# Misc Notes
 
+
+# Temporary Files
+Most UNIX system provides `/tmp` for storing temporary files. Some time ago, this directory was persistent, but nowadays, it is a memory mapped file system. In other words, when the system is rebooted, all previous files in /tmp will be erased.
+
+In bash, the variable `$$` contains the current process id.
+```
+$ echo $$
+123445
+$ _
+```
+
+You can use `$$` to create a temporary file like this:
+```
+#!/bin/bash
+ 
+TMPFILE=/tmp/mytmp.$$
+ 
+curl -sL 'some-url-that-gives-data' > "$TMPFILE"
+ 
+processing_command "$TMPFILE"
+ 
+rm -f "$TMPFILE"
+```
+
+If you need to create multiple temporary files, you have two options:
+* use different name pattern, e.g. `/tmp/mytmp.$$` for one and `/tmp/mytmp2.$$` for the other.
+* use `mktemp(1)` command to create temporary files. `mktemp(1)` requires a pathname template, which need to have at least 3 "X" in the end of the template. `mktemp(1)` will create an empty file, and print the pathname of the temporary file. For example:
+```
+$ mktemp tmp.XXXXXX             # create temporary file in current directory
+tmp.da4r23
+$ mktemp -t tmp.XXXXXX          # create temporary file in system temporary directory (i.e. /tmp)
+/tmp/tmp.Xsaw6r
+```
+You can create a script like this to use `mktemp(1)`:
+```
+#!/bin/bash
+ 
+TMPFILE=$(mktemp -t tmp.XXXXXX)
+ 
+curl -sL 'some-url-that-gives-data' > "$TMPFILE"
+ 
+processing_command "$TMPFILE"
+ 
+rm -f "$TMPFILE"
+```
+
+
+## Words of advice
+* To create a temporary file, use $$ as part of the filename, and place it in /tmp/.
+* Or, use mktemp -t to create temporary files.
+* Make sure to delete the temporary files. (See following section for trap command)
+
+# Signals
+In general (UNIX based system), you can configure your process to ignore/block/handle signals except SIGKILL and SIGSTOP.
+
+* If you configure your process to ignore specific signal, the signal will be ignored.
+* If you configure your process to block specific signal, the signal will be blocked, so your process will not get notified. However, if you unblock the signal, your process will be immediately notified if there was a signal.
+* If you install signal handler, then when your process get signal, the signal handler will be executed.
+
+Here's a table of signals and meanings. In the 'Action' columns, 'Term' means that process will be terminated, 'Core' means that process will be terminated with core dump, 'Stop' means the process will be stopped (suspended), and 'Ign' means that the signal will be ignored.
+
+You may not need to understand all signal types. The key signals on scripting will be `SIGHUP`, `SIGINT`, `SIGTERM`, and `SIGKILL`.
+* When the connection between your terminal and the system terminated (e.g. ssh connection closed), most processes that uses the same controlling terminal will receive `SIGHUP`. (i.e. any process you created in that terminal) By default, processes will die on `SIGHUP` signal.
+* When you press Control+C in the terminal, all processes in the foreground process group will receive `SIGINT`. By default, processes will die on `SIGINT` singnal.
+* `SIGTERM` is manually generate by running `kill(1)` command. By default, processes will die on SIGTERM signal.
+
+| Name    | Value    | Action | Comment                                                                 | 
+|---------|----------|--------|-------------------------------------------------------------------------| 
+| SIGHUP  | 1        | Term   | Hangup detected on controlling terminal or death of controlling process | 
+| SIGINT  | 2        | Term   | Interrupt from keyboard                                                 | 
+| SIGQUIT | 3        | Core   | Quit from keyboard                                                      | 
+| SIGILL  | 4        | Core   | Illegal Instruction                                                     | 
+| SIGABRT | 6        | Core   | Abort signal from abort(3)                                              | 
+| SIGFPE  | 8        | Core   | Floating point exception                                                | 
+| SIGKILL | 9        | Term   | Kill signal                                                             | 
+| SIGSEGV | 11       | Core   | Invalid memory reference                                                | 
+| SIGPIPE | 13       | Term   | Broken pipe: write to pipe with no readers                              | 
+| SIGALRM | 14       | Term   | Timer signal from alarm(2)                                              | 
+| SIGTERM | 15       | Term   | Termination signal                                                      | 
+| SIGUSR1 | 30,10,16 | Term   | User-defined signal 1                                                   | 
+| SIGUSR2 | 31,12,17 | Term   | User-defined signal 2                                                   | 
+| SIGCHLD | 20,17,18 | Ign    | Child stopped or terminated                                             | 
+| SIGCONT | 19,18,25 | Cont   | Continue if stopped                                                     | 
+| SIGSTOP | 17,19,23 | Stop   | Stop process                                                            | 
+| SIGTSTP | 18,20,24 | Stop   | Stop typed at tty                                                       | 
+| SIGTTIN | 21,21,26 | Stop   | tty input for background process                                        | 
+| SIGTTOU | 22,22,27 | Stop   | tty output for background process                                       | 
+
+
+If you press `^Z`, the process will receive `SIGSTOP`, which makes it stopped(suspended). If you run `fg` built-in, the process will receive `SIGCONT`, which makes it running again.
+
+You can manually send a signal to process(es), by using `kill(1)` command.
+
+```
+$ ​kill -TERM 1234               # send SIGTERM to the process (pid:1234)
+$ kill 1234                     # the same
+ 
+$ kill -KILL 1234               # send SIGKILL to the process (pid:1234)
+$ kill -9    1234               # the same.
+ 
+$ kill -0    1234               # send no signal, instead error checking
+                                # which allows you to check whether the process alive or not.
+ 
+$ kill -KILL -1                 # send SIGKILL to all process except init(1)
+$ kill -TERM -1234              # send SIGTERM to all process belong to the process group 1234
+```
+
+## trap built-in command
+`trap` is to register/deregister signal handler to your script.
+
+Proper format will be
+```
+trap -l                         # list all known signals
+trap -p                         # list all registerd handlers
+ 
+trap COMMAND SIGNAL...          # register COMMAND as a handler of SIGNAL...
+ 
+trap - SIGNAL...                # deregister the handler of SIGNAL...
+trap "" SINGAL...               # the same
+trap '' SIGNAL...               # the same
+#!/bin/bash
+ 
+# This script will ignore
+trap "echo INTERRUPTED" INT
+ 
+sleep 10                        # point A
+# point B
+sleep 20                        # point C
+# point D
+```
+
+You run above script in bash prompt, then the processes are look like this:
+| USER     | PID  | PPID | PGID | CMD       | description | 
+|----------|------|------|------|-----------|-------------| 
+| povalajp | 1000 | 999  | 1000 | -bash     | login shell | 
+| povalajp | 1001 | 1000 | 1001 | ./intr.sh | the script  | 
+| povalajp | 1002 | 1001 | 1001 | sleep 10  |             | 
+
+
+You pressed ^C at the point A
+Your terminal will send `SIGINT` to all processes belong to the foreground process group of the terminal where PGID is 1001, which means the processs 1001 and 1002.
+
+By default, if your program is not configured to catch `SIGINT`, it will be terminated. Hence `sleep 10` command will receive `SIGINT`, and will terminate.
+
+Your script, `./intr.sh` registered handler code for `SIGINT` using `trap`, so when the script (bash) received `SIGINT`, it will execute the bash command, `echo INTERRUPTED`.
+
+Since `sleep 10` is terminated, your script (bash) will execute the next command, `sleep 20`.
+
+### How do we know whether the previous command received a signal?
+In short, by looking at the exit code of previous command.
+```
+$ do_some_command
+$ echo $?                       # $? will contains the exit status of the last executed command.
+0
+```
+
+* The possible range of the exit status code is between 0 to 255.
+* 0 means the command was successful.
+* Generally, non-zero means the command was failed.
+* If the command not found, bash will return 127.
+* If the command was found, but not executable, bash will return 126.
+* If the command terminated on a fatal signal N, bash will return 128 + N as the exit status.
+
+### Example
+```
+#!/bin/bash
+ 
+TMPFILE="/tmp/tmp.$$"
+ 
+curl -sL 'http://some-url-gives-data/' > "$TMPFILE"
+ 
+some-command1-that-process-output "$TMPFILE" # point A
+ 
+rm -f "$TMPFILE"
+```
+What will happen if you press ^C at the point A?
+
+```
+#!/bin/bash
+ 
+TMPFILE="/tmp/tmp.$$"
+ 
+trap "rm -f $TMPFILE" INT
+ 
+curl -sL 'http://some-url-gives-data/' > "$TMPFILE"
+ 
+some-command1-that-process-output "$TMPFILE" # point A
+ 
+rm -f "$TMPFILE"
+```
+Think about whether it is possible that this script may not remove the temporary file.
+
+### trap `"…"` 0
+
+### trap - `...`
+This will remove any registered handler for signals `...`
+```
+trap - INT HUP TERM             # remove any handler code for signals
+                                # SIGINT, SIGHUP, and SIGTERM.
+```
+
+### words of advice
+* When you need to create a temporary file (or any side effect), always register signal handler to clean up properly.
+* In most case, your signal handler code need to end with `exit`. Otherwise the signal may be ignored, which makes it difficult to terminate.
+* Your signal handler supposed to finish quickly. Do not put any long timed operation there.
+* You could ignore certain signals if you intent to create a daemon using shell script, which is rarely the occasion.
+* Bash may not perform any syntax check on the handler.
+
+
+## nohup and disown
+Processes will die on SIGHUP.
+
+There are processes that should not die on SIGHUP. For example, daemon processes such as HTTP server(e.g. apache, ngnix), or terminal session manager such as screen(1) or tmux(1).
+
+You can use `trap` to ignore SIGHUP, but there are better ways to do it.
+
+### nohup
+If you want to run COMMAND, and if you think it will take a long time, and you do not want to terminate it even if you disconnect the connection, you could use
+```
+$ nohup COMMAND
+$ nohup COMMAND &
+$ nohup COMMAND > FILE &
+```
+* stdin of COMMAND automatically bound to /dev/null.
+* stdout of COMMAND automatically bound to nohup.out (if that's not possible, $HOME/nohup.out)
+* stderr of COMMAND automatically bound to stdout.
+
+
+
+### disown
+If you already have a process, and if you want to make it resistant from `SIGHUP`, use `disown`.
+```
+$ COMMAND &                     # Run COMMAND in background
+[1] 12345
+$ disown %1                     # make the job ignoring SIGHUP
+```
+Or
+```
+$ COMMAND                       # take too long
+^Z                              # press control+Z to stop(suspend) it
+[1]+  Stopped       COMMAND
+$ bg                            # make COMMAND as a background job
+[1]+ COMMAND &
+$ disown %1                     # make the job ignoring SIGHUP
+```
+
+
+
+# Misc Notes
 * use `set -o vi` in order to use vi editining mode.
 
 
