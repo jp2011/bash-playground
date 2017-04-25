@@ -35,8 +35,6 @@ program starts a shell for the user. The type of shell depends on `/etc/passwd`.
 If the specified shell is non-interactive, the command-line may be denied. 
 `/bin/true` and `/bin/false` are example of non-interactive shells.
 
-
-
 ### Shells
 * **Bourne Shell**
 * **C Shell** - very similar to Bourne shell, but the syntax is C-like.
@@ -140,7 +138,7 @@ find /path -type f -print | xargs rm
 ```
 
 ### `xargs` examples
-```
+```bash
 seq 10 | xargs echo
 seq 10 | xargs -n 1 echo
 seq 10 | xargs -I {} echo 'hello - {}'
@@ -218,7 +216,7 @@ Because `awk` does not know option `-F: -f`. This however works fine on Mac's sh
 ## Redirection
 See this [link](http://www.tldp.org/LDP/abs/html/io-redirection.html) for more information. 
 
-```
+```bash
 >         ls > xxx
 <         cat < hello.java
 2> file.txt   //redirect STDOUT to some file      
@@ -233,19 +231,19 @@ See this [link](http://www.tldp.org/LDP/abs/html/io-redirection.html) for more i
 | STDOUT | fd1  (usually terminal) |
 | STDERR | fd2 (usually terminal)  |
 
-```
+```bash
 if xxx; then
 	echo "error" 1>&2
     exit 1
 fi 
 ```
 
-```
+```bash
 xxxx > out.txt 2>err.txt
 ```
 
 
-```
+```bash
 xxx 1>&2 2>/dev/null
 ```
 fd1 -> old fd2
@@ -253,7 +251,7 @@ fd2 -> null
 
 ### Disable input using redirection
 `./script.sh > /dev/null` removes the output from the shell completely. Then take an example of this script:
-```
+```bash
 ...
 exec > /dev/null # swallow all the output
 exec < /dev/null # any attempt to read from standard input will fail
@@ -262,7 +260,7 @@ exec < /dev/null # any attempt to read from standard input will fail
 
 ### Redirection examples
 See [here](http://www.tldp.org/LDP/abs/html/io-redirection.html) for more examples.
-```
+```bash
 COMMAND >FILE   # redirect the stdout of COMMAND to FILE
 COMMAND 1>FILE  #
  
@@ -321,7 +319,7 @@ exec J<&-    # close input file descriptor J
 ## Special Files
 
 
-```
+```bash
 /dev/fd/N              # N is integer starting from 0
 /dev/stdin             # identical to /dev/fd/0
 /dev/stdout            # identical to /dev/fd/1
@@ -347,7 +345,7 @@ Assuming that in your system, has two additional hard disks, which have exactly 
 This will create a replica of the hard drive.
 
 ### Device file
-```
+```bash
 /dev/disk*                      # Hard disk (MacOS)
  
 /dev/hda                        # IDE hard disks
@@ -374,7 +372,7 @@ This will create a replica of the hard drive.
 ```
 
 One can write into another terminal:
-```
+```bash
 # In terminal #1
 $ tty
 /dev/pts/3
@@ -398,7 +396,7 @@ $ echo "hello world" > /dev/pts/3   # this will write into terminal 1
 
 ## Control Directives
 ### if
-```
+```bash
 if command; then
    -----
 elif command; then
@@ -412,7 +410,7 @@ fi
 ``` if command; then true-part-command; fi ```
 
 **Example:**
-```
+```bash
 if which python3; then
     python3 ~.py
 else
@@ -421,7 +419,7 @@ fi
 ```
 
 ### for
-``` 
+```bash
 for f in *.java *.c ; do
 	echo "$f"
 done
@@ -433,7 +431,7 @@ It only returns 0 or 1 based on the expression.
 e.g. ```test -f xx.java``` will return 0 if it finds the file, non-zero otherwise
 ```test -d a.sh```, ```test -x  a.sh```
 
-```
+```bash
 test arg1 -eq arg2
 test arg1 -ne arg2
 test arg1 -gt arg2
@@ -449,14 +447,14 @@ is identical to
 
 other things include: `[[, ~=`
 
-```
+```bash
 if cmd          # check the return status of cmd
 if [[ $(cmd) ]] # check if cmd has any output
 ```
 
 **Examples**
 
-```
+```bash
 PYTHON2=$(which python 2>/dev/null)
 if [ -z "$PYTHON2" ]; then
     if [ -x "/apollo/env/envImprovement/bin/python" ]; then
@@ -469,7 +467,7 @@ if [ -z "$PYTHON2" ]; then
 fi
 ```
 
-```
+```bash
 PY = $(which python 2>/dev/null)
 if [ -z "$PY"]; then 
     echo "error" 1&>2
@@ -480,7 +478,7 @@ fi
 `-z` means if variable is empty/non-defined
 
 
-```
+```bash
 if ! which python3 2>/dev/null; then
     echo
 fi
@@ -566,7 +564,7 @@ like this: `cat /tmp/tmp/1234`.
 Notice that the example below invokes `cat` without providing an argument. `cat`
 command requires file as an argument. In this case, a temp file is created
 with the string content of 'hello'.
-```
+```bash
 $ cat CR
 hello
 ^D
@@ -576,13 +574,13 @@ $_
 
 **TODO:  What is the difference?**
 
-```
+```bash
 $ cat < hello.txt
 $ cat hello.txt
 ```
 
 
-```
+```bash
 $ cat << EOF
 .........
 .........
@@ -595,7 +593,7 @@ beginning with that character, consider it as the end of the input.
 **<()**
 * `<()` will be replaced by a temporary FIFO file after executing the ... part
 
-```
+```bash
 ruby <( cat << EOF
 require 'json'      # ruby source code
 json.parse();       # ruby source code   
@@ -611,7 +609,7 @@ EOF)
 - `awk` can't parse xml or json.
 
 
-```
+```bash
 ruby <( cat << 'EOF' 
 require 'json'      # ruby source code
 json.parse();       # ruby source code   
@@ -626,13 +624,13 @@ is to alleviate a problem of bash trying to parse and do expansions on the
 ruby/python code. Sometimes this could be desirable though.
 
 ## Functions
-```
+```bash
 error() {  # no space between error and '('. No function params allowed.
 
 }
 ```
 or
-```
+```bash
 function error() {
 
 }
@@ -643,7 +641,7 @@ function error() {
 "$@" separate into multiple
 
 
-```
+```bash
 error() {
   errorcode="$1"
   shift
@@ -668,14 +666,14 @@ error() {
 Most UNIX system provides `/tmp` for storing temporary files. Some time ago, this directory was persistent, but nowadays, it is a memory mapped file system. In other words, when the system is rebooted, all previous files in /tmp will be erased.
 
 In bash, the variable `$$` contains the current process id.
-```
+```bash
 $ echo $$
 123445
 $ _
 ```
 
 You can use `$$` to create a temporary file like this:
-```
+```bash
 #!/bin/bash
  
 TMPFILE=/tmp/mytmp.$$
@@ -690,14 +688,14 @@ rm -f "$TMPFILE"
 If you need to create multiple temporary files, you have two options:
 * use different name pattern, e.g. `/tmp/mytmp.$$` for one and `/tmp/mytmp2.$$` for the other.
 * use `mktemp(1)` command to create temporary files. `mktemp(1)` requires a pathname template, which need to have at least 3 "X" in the end of the template. `mktemp(1)` will create an empty file, and print the pathname of the temporary file. For example:
-```
+```bash
 $ mktemp tmp.XXXXXX             # create temporary file in current directory
 tmp.da4r23
 $ mktemp -t tmp.XXXXXX          # create temporary file in system temporary directory (i.e. /tmp)
 /tmp/tmp.Xsaw6r
 ```
 You can create a script like this to use `mktemp(1)`:
-```
+```bash
 #!/bin/bash
  
 TMPFILE=$(mktemp -t tmp.XXXXXX)
@@ -756,7 +754,7 @@ If you press `^Z`, the process will receive `SIGSTOP`, which makes it stopped(su
 
 You can manually send a signal to process(es), by using `kill(1)` command.
 
-```
+```bash
 $ ​kill -TERM 1234               # send SIGTERM to the process (pid:1234)
 $ kill 1234                     # the same
  
@@ -774,7 +772,7 @@ $ kill -TERM -1234              # send SIGTERM to all process belong to the proc
 `trap` is to register/deregister signal handler to your script.
 
 Proper format will be
-```
+```bash
 trap -l                         # list all known signals
 trap -p                         # list all registerd handlers
  
@@ -797,9 +795,9 @@ sleep 20                        # point C
 You run above script in bash prompt, then the processes are look like this:
 | USER     | PID  | PPID | PGID | CMD       | description | 
 |----------|------|------|------|-----------|-------------| 
-| povalajp | 1000 | 999  | 1000 | -bash     | login shell | 
-| povalajp | 1001 | 1000 | 1001 | ./intr.sh | the script  | 
-| povalajp | 1002 | 1001 | 1001 | sleep 10  |             | 
+| jp2011 | 1000 | 999  | 1000 | -bash     | login shell | 
+| jp2011 | 1001 | 1000 | 1001 | ./intr.sh | the script  | 
+| jp2011 | 1002 | 1001 | 1001 | sleep 10  |             | 
 
 
 You pressed ^C at the point A
@@ -813,7 +811,7 @@ Since `sleep 10` is terminated, your script (bash) will execute the next command
 
 ### How do we know whether the previous command received a signal?
 In short, by looking at the exit code of previous command.
-```
+```bash
 $ do_some_command
 $ echo $?                       # $? will contains the exit status of the last executed command.
 0
@@ -827,7 +825,7 @@ $ echo $?                       # $? will contains the exit status of the last e
 * If the command terminated on a fatal signal N, bash will return 128 + N as the exit status.
 
 ### Example
-```
+```bash
 #!/bin/bash
  
 TMPFILE="/tmp/tmp.$$"
@@ -840,7 +838,7 @@ rm -f "$TMPFILE"
 ```
 What will happen if you press ^C at the point A?
 
-```
+```bash
 #!/bin/bash
  
 TMPFILE="/tmp/tmp.$$"
@@ -859,7 +857,7 @@ Think about whether it is possible that this script may not remove the temporary
 
 ### trap - `...`
 This will remove any registered handler for signals `...`
-```
+```bash
 trap - INT HUP TERM             # remove any handler code for signals
                                 # SIGINT, SIGHUP, and SIGTERM.
 ```
@@ -881,7 +879,7 @@ You can use `trap` to ignore SIGHUP, but there are better ways to do it.
 
 ### nohup
 If you want to run COMMAND, and if you think it will take a long time, and you do not want to terminate it even if you disconnect the connection, you could use
-```
+```bash
 $ nohup COMMAND
 $ nohup COMMAND &
 $ nohup COMMAND > FILE &
@@ -894,13 +892,13 @@ $ nohup COMMAND > FILE &
 
 ### disown
 If you already have a process, and if you want to make it resistant from `SIGHUP`, use `disown`.
-```
+```bash
 $ COMMAND &                     # Run COMMAND in background
 [1] 12345
 $ disown %1                     # make the job ignoring SIGHUP
 ```
 Or
-```
+```bash
 $ COMMAND                       # take too long
 ^Z                              # press control+Z to stop(suspend) it
 [1]+  Stopped       COMMAND
@@ -908,6 +906,414 @@ $ bg                            # make COMMAND as a background job
 [1]+ COMMAND &
 $ disown %1                     # make the job ignoring SIGHUP
 ```
+
+# Option Parsing
+
+## Basics
+Most of commands shares some conventions to provide optional parameters and arguments.
+```bash
+$ COMMAND-NAME [OPTION...] ARGUMENT...
+```
+All options start with `-`.
+
+There are two types of options based on the length of their names:
+* *short option*: one letter preceded by a `-`, e.g. `-a`, `-b`, `-c`
+* *long option*: a word preceded by a `--`, e.g. `--output`, or `--extra-delims`
+Some programs only support short option, while others can support both, or only long option (this happens very rarely).
+
+An argument can be supplied to the option. Depending on the command, this argument can be mandatory or optional.
+```bash
+$ gcc -o hello hello.c        # -o option of gcc expects an argument(hello) here.
+$ bash -c 'echo hello'        # -c option of bash expects an argument('echo hello') here
+$ COMMAND | xargs -l4 echo    # -l option of xargs expects an optional argument(4) here
+$ COMMAND | xaggs -l  echo    # -l option of xargs expects an optional argument(N/A) here
+```
+Depending on the program, optional argument can be provided as a separated word `(-o xxx)`, or need to specified together `(-l4)`.
+
+Some programs will also accept condensed form of options. For example, below two commands are identical:
+```bash
+$ tar -t -v -z -f hello.tar.gz
+$ tar -tvzf hello.tar.gz
+```
+For a long option, optional argument can be specificed using the `=` sign.
+```bash
+$ wget --output-document=file 'http://someplace.com/' # an optional argument(file) is given to --output-document option
+```
+Unfortunately, Java does not follow this tradition. In Java related tools, they tend to provide long option with a single `-`. For example:
+```bash
+$ java -d32 -classpath /usr/lib/jre/lib HelloWorld.class
+```
+For guidance on option parsing when developing a new tool, see [GNU Coding Standard](https://www.gnu.org/prep/standards/standards.html#Program-Behavior).
+
+There are cases that you want to pass `-` prefixed string as an ARGUMENT, not OPTION. For example, assuming that you create a file named `-r`. How to remove this file?
+
+```bash
+$ rm -f -r
+rm: missing operand
+Try 'rm --help' for more information.
+$ _
+```
+By convention, most commands uses -- as a delimeter between OPTIONs and ARGUMENTs. So you can remove that file using
+```bash
+$ rm -f -- -r
+```
+
+## Implementing short option parser
+You do not need to implement anything if you just want to use short options. You can use `getopts` built-in like this:
+```bash
+while getopts "hvo:D" opt; do
+    case "$opt" in
+        h)
+            help_and_exit
+            ;;
+        v)
+            version_and_exit
+            ;;
+        o)
+            output_file="$OPTARG"
+            ;;
+        D)
+            DEBUG=1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+```
+The first argument of `getopts` is the option specification, which is almost the same as `getopt(3)`. It's a string with all optional characters that you want to support. (The order doesn't matter.) A few things need to be mentioned here:
+* If the first character of the spec begins with ':', getopts will not display error message, which is called silent error reporting.
+* If a character followed by ':', then it means the option character requires an argument.
+
+For example, in above script, `"hvo:D"` means that this script may receives `-h`, `-v`, `-o ARGUMENT`, or `-D`.
+
+In each iteration, `getopts` will return success (exit status code 0) if there are more options to be parsed.
+
+When `getopts` detects an option, it will set the variable in the second argument (specifically, `'opt'` in above example) to the optional character. (in above example, `'opt'` can be one of `h`, `v`, `o`, or `D`.
+
+For the option that requires an argument, `getopts` will set the variable `OPTARG` to the optional argument.
+
+If `getopts` detects an invalid option, (which is not specified in the first argument of `getopts`), the behavior of `getopts` are different depending on whether it is in silent error reporting:
+* On silent error reporting, `getopts` will not print an error message, it will set the second argument to `?`, and set `OPTARG` to the unrecognized optional character.
+* Otherwise, `getopts` will print an error message, it will set the second argument to `?`, and unset `OPTARG`.
+
+`getopts` will update `OPTIND` variable, as the index of the first ARGUMENT. For example:
+```bash
+./your-program -o a.out -D hello world
+-------------- -- ----- -- ----- -----
+$0             $1 $2    $3 $4    $5
+ 
+OPTIND will set to 4
+```
+So to set "hello" as "$1", we need to call `shift 3`, which can be obtained from `shift $((OPTIND - 1))`. Read `OPTIND` in below getopts and functions section for more about `OPTIND`.
+
+## Implementing long option parser
+Unfortunately, `bash(1)` does not support anything for parsing long options. You need to implement it yourself. Fortunately it's not that difficult.
+
+```bash
+while [[ "$1" == -* ]]; do
+    case "$1" in
+        --)
+            shift
+            break
+            ;;
+        --help)
+            help_and_exit
+            ;;
+        --version)
+            version_and_exit
+            ;;
+        --output=*|-o)
+            if [ "$1" = "-o" ]; then
+                OPTARG=$2
+                shift
+            else
+                OPTARG=${1#--output=}
+            fi
+            ;;
+        --debug|-D)
+            DEBUG=1
+            ;;
+        *)
+            echo "invalid option -- $1" 2>&1
+            exit 1
+            ;;
+    esac
+    shift
+done
+```
+This has a drawbacks compared to the previous script that uses `getopts`. This does not support condensed form of the short options (e.g. `-tv` instead of `-t` `-v`).
+
+## `getopts` and functions
+When a function is executed, the arguments to the function become the positional parameters during its execution. The special parameter `$#` is updated to reflect the change. Special parameter `$0` is unchanged. The first element of the FUNCNAME variable is set to the name of the function while the function is executing.
+
+This means, that you can use `getopts` in your function to provide option processing on your function.
+
+When you first call `getopts` built-in, it will try to parse arguments starting from `OPTIND`. If `OPTIND` is not defined, it will set to 1 by default. That's why `getopts` will try to parse from `$1`. Whenever `getopts` parses positional parameters, it will set `OPTIND` accordingly.
+
+Suppose you have following script:
+```bash
+#!/bin/bash
+ 
+foo() {
+    while getopts "..." opt; do # getopts for the function, foo.
+        case "$opt" in
+            ...
+        esac
+    done
+ 
+    ...
+}
+ 
+while getopts "..." opt; do     # getopts for the script
+    case "$opt" in
+        ...
+    esac
+done
+shift $((OPTIND - 1))
+ 
+foo -h -a ARGUMENT1 ARGUMENT2
+```
+When you execute above script, `getopts` is called for the first time in the line with the comment `"getopts for the script"`. At that time `OPTIND` is not defined, so it is initialized to 1, and `getopts` will start to parse any option from `$1`. Suppose that you provided some options to this script, and `OPTIND` is set to some value, say, 4.
+
+Now, you are calling the function, `foo`. Then, all positional paramters starting from `$1` are replaced to the argument to the function call. That is:
+```bash
+foo -h -a ARGUMENT1 ARGUMENT2
+--- -- -- --------- ---------
+    $1 $2 $3        $4
+```
+But since `OPTIND` is already set to 4, it will start to parse from `$4`, which is not what you want. To resolve this, you need to either (1) unset `OPTIND`, (2) override `OPTIND` to 1.
+
+Since you can define function local variable using `local`, you can fix the definition of `foo` like this:
+```bash
+foo() {
+    local OPTIND=1
+    while getopts "..." opt; do # getopts for the function, foo.
+        case "$opt" in
+            ...
+        esac
+    done
+ 
+    ...
+}
+```
+Just remember, to use `getopts`, you need to make sure that either (1) `OPTIND` is not defined, or (2) `OPTIND` is set to 1.
+
+## Complete Template for bash script
+Here is a template for bash scripts
+```bash
+#!/bin/bash
+ 
+PROGRAM_NAME=$(basename "$0")
+VERSION_STRING="0.1"
+DEBUG=0
+ 
+error() {
+    local exitstatus="$1"
+ 
+    shift
+    echo "$PROGRAM_NAME: $*" 1>&2
+ 
+    [ "$exitstatus" -ne 0 ] && exit "$exitstatus"
+}
+ 
+debug() {
+    [ "$DEBUG" -ne 0 ] && echo "debug: $*" 1>&2
+}
+ 
+help_and_exit() {
+    cat <<EOF
+Short description of the script behavior
+Usage: $PROGRAM_NAME [OPTION...] ARGUMENT...
+ 
+    ADD MORE OPTION ENTRIES HERE
+ 
+    -h    show help message and exit
+    -v    display version string and exit
+ 
+EOF
+    exit 0
+}
+ 
+version_and_exit() {
+    echo "$PROGRAM_NAME version $VERSION_STRING"
+    exit 0
+}
+ 
+while getopts ":hVvD" opt; do
+    case "$opt" in
+        h)
+            help_and_exit
+            ;;
+        [Vv])
+            version_and_exit
+            ;;
+        D)
+            DEBUG=1
+            ;;
+        ?)
+            error 0 "unrecognized option -- '$opt'"
+            error 1 "Try with '-h' for more help"
+            ;;
+        *)
+            error 1 "unhandled option -- '$opt'"
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+ 
+debug "args: $*"
+debug "nargs: $#"
+ 
+if [ "$#" -eq 0 ]; then         # If you can accept no ARGUMENT, remove this
+    error 1 "argument(s) required"
+fi
+ 
+for arg in "$@"; do
+    debug "processing '$arg'"
+ 
+    # put the actual logic to process each $arg
+done
+```
+
+# Arrays
+*Bash* version 3.x supports arrays with numberic index. From bash version 4.x, you can have a string as a index. In bash, arrays with string index are called associative arrays.
+
+If you need to use associative arrays in your Mac, you need to upgrate the *bash*.
+
+Don't think bash arrays are as flexible as the arrays of your favorite programming languages.
+* You can create arrays.
+* You can copy arrays.
+* Removing an element from the array is very difficult.
+* You can iterate/enumerate elements from an array.
+* You can construct an array by adding some elements to the existing one.
+* Only one dimensional arrays are supported.
+
+
+## Arrays (with numeric index)
+The usual purpose of numeric-indexed arrays is:
+* to construct it by adding some elements at a time.
+* then iterate all elements in the array,
+* or, pass it to bash to execute the command line in the array.
+
+```bash
+FOO=()                          # declaring empty array
+BAR=(foo bar car)               # declaring an array with two elements [0] foo and [1] bar.
+ 
+echo "${BAR[1]}"                # accessing BAR[1], which is 'bar'
+echo "${BAR[0]}"                # accessing BAR[0], which is 'foo'
+ 
+echo "${BAR[*]}"                # get the values of the array.  (i.e. you'll get "foo bar car")
+echo "${BAR[@]}"                # get the values of the array.  (i.e. you'll get "foo" "bar" "car")
+ 
+for elem in "${BAR[@]}"; do     # enumerate all elements in the array, BAR.
+  echo "element: $elem"
+done
+ 
+echo "${!name[*]}"              # get the name of indexes.  (i.e. you'll get "0 1 2")
+echo "${!name[@]}"              # get the name of indexes.  (i.e. you'll get "0" "1" "2")
+ 
+echo "number of elements in BAR: ${#BAR[@]}"  # get the number of elements in BAR.
+ 
+unset BAR[1]                    # unset(remove) the element BAR[1].
+                                # Now, BAR contains BAR[0] and BAR[2].
+ 
+FOO=("${BAR[@]}" bar)           # identical to FOO=(foo car bar)
+```
+Arrays are particularly useful when if you want to build a command-line step by step.
+
+For example, `ssh` accepts `-L` option to enable local port forwarding, expect extra argument in following format:
+```bash
+$ # -L port:host:hostport
+$ ssh -L 9999:127.0.0.1:9999 -L 9998:127.0.0.1:9998 host.example.com
+```
+Let's assume that you always use 'XXXX:127.0.0.1:XXXX' for the argument for `-L` option. And you don't want to remember the syntax of the argument of `-L` option. Then, you could write a wrapper to `ssh` like this:
+```bash
+#!/bin/bash
+ 
+# Usage: ssh-lf OPTION... HOST [command]
+#
+# OPTION can be any option that ssh(1) accepts.
+#
+# For -L option however, you can use -L port which is translated to -L port:127.0.0.1:port
+#
+ 
+PROGRAM_NAME=$(basename "$0")
+VERSION_STRING="0.1"
+ 
+error() {
+    local exitcode="$1"
+    shift
+    echo "$PROGRAM_NAME: $*" 1>&2
+    [ "$exitcode" -ne 0 ] && exit "$exitcode"
+}
+ 
+debug() {
+    [[ -n "$DEBUG" && "$DEBUG" -gt 0 ]] && echo "debug: $*" 1>&2
+}
+ 
+translate_local_forward_arg() {
+    local ndelim
+    ndelim=$(echo "$1" | grep -o : | wc -l) # number of ':' characters in $1
+ 
+    if [ "$ndelim" -eq 0 ]; then # port
+        echo "$1:127.0.0.1:$1"
+    else                        # one of [bind_address:]port:host:hostport
+        echo "$1"
+    fi
+}
+ 
+SSH_CMD=("ssh")
+ 
+while getopts "1246AaCfGgKkMNnqsTtVvXxYyb:c:D:E:e:F:I:i:L:l:m:O:o:p:Q:R:S:W:w:" opt; do
+    case "$opt" in
+        [1246AaCfGgKkMNnqsTtVvXxYy])
+            SSH_CMD=("${SSH_CMD[@]}" "-$opt")
+            ;;
+        [bcDEeFIilmOopQRSWw])
+            SSH_CMD=("${SSH_CMD[@]}" "-$opt" "$OPTARG")
+            ;;
+        L)
+            SSH_CMD=("${SSH_CMD[@]}" "-L" $(translate_local_forward_arg "$OPTARG"))
+            ;;
+        *)
+            error 1 "illegal option -- $opt"
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+ 
+SSH_CMD=("${SSH_CMD[@]}" "$@")
+ 
+debug "cmdline: ${SSH_CMD[*]}"
+ 
+exec "${SSH_CMD[@]}"            # Since ssh may take a while, it's
+                                # better to exec to replace this
+                                # process to ssh
+```
+
+## Associative array
+Unlike arrays, associative arrays need to be explicitly declared using `declare -A`.
+```bash
+# declare -A ASSOC_ARRAY=([key1]=value1 [key2]=value2 ...)
+ 
+declare -A HEADERS=([Content-Type]='text/html' [Host]="www.cinsk.org")
+ 
+echo "${HEADERS[Content-Type]}" # get the value of HEADERS[Content-Type]
+echo "${HEADERS[Host]}"         # get the value of HEADERS[Host]
+ 
+echo "${HEADERS[*]}"            # get the values of the assoc-array (i.e. you'll get something like "www.cinsk.org text/html")
+echo "${HEADERS[@]}"            # get the values of the assoc-array (i.e. you'll get something like "www.cinsk.org" "text/html")
+ 
+echo "${!HEADERS[*]}"           # get the name of keys.  (i.e. you'll get something like "Content-Type Host")
+echo "${!HEADERS[@]}"           # get the name of keys.  (i.e. you'll get "Content-Type" "Host")
+ 
+for key in "${!HEADERS[@]}"; do    # enumerate all elements in the assoc-array, HEADERS
+  echo "HEADERS[$key] = ${HEADERS[$key]}"
+done
+ 
+HEADERS["name"]="Jan Povala"  # add one more element in the HEADERS 
+echo "number of elements in HEADERS: ${#HEADERS[@]}"  # get the number of elements in HEADERS
+```
+Associative arrays are seldom used. If you need this, think again whether you really want to do this. It's probably better to create script in other languages such as Awk, Python or Ruby.
 
 
 
